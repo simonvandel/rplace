@@ -1,0 +1,11 @@
+[package]
+authors = ["Simon Vandel Sillesen <simon.vandel@gmail.com>"]
+name = "rplace"
+version = "0.1.0"
+
+[dependencies]
+image = "0.12.3"
+nom = "2.2.1"
+
+[profile.release]
+debug = true
