@@ -9,7 +9,7 @@ pub struct Grid {
 impl Grid {
     pub fn new() -> Self {
         let default_subpixel = Rgb{data: [0u8,0,0]};
-        let buffer = vec![default_subpixel; 9999*9999];
+        let buffer = vec![default_subpixel; 1000*1000];
         
         Grid {buffer: buffer }
     }
@@ -26,5 +26,5 @@ impl Grid {
 }
 
 fn get_index(x: u32, y: u32) -> usize {
-    (x * 9999 + y) as usize
+    (x * 999 + y) as usize
 }

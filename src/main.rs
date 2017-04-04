@@ -4,6 +4,7 @@ extern crate image;
 
 use nom::le_u32;
 use nom::IResult;
+use nom::{MapConsumer,Consumer,MemProducer, Producer};
 
 use image::Rgb;
 
@@ -97,26 +98,47 @@ fn color_to_rgb(color: u32) -> Rgb<u8> {
     Rgb{data: [ bytes[2], bytes[1], bytes[0] ]}
 }
 
+consumer_from_parser!(TestConsumer<StateChange>, state_change);
 
 fn main() {
     let mut reader = mk_reader("diffs.bin").expect("Failed getting reader");
-    let mut bytes: Vec<u8> = Vec::new();
-    reader.read_to_end(&mut bytes).expect("could not read file");
+    let mut buffer = [0; 4000];
     
-    if let IResult::Done(_, state_changes) = main_parse(&bytes) {
+    let mut board = Grid::new();
 
-        let mut board = Grid::new();
+    loop {
+        let mut progress = 0;
+        let bytes_read = match reader.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(bytes_read) => bytes_read,
+            Err(_) => panic!("read fail"),
+        };
         
-        // fill grid with all changes
-        for state_change in state_changes {
-            board.update_index(state_change.x, state_change.y, color_to_rgb(state_change.color))
+        let mut go = true;
+        let mut rest_input = &buffer[progress..bytes_read];
+        while go {
+            let res = state_change(rest_input);
+            use nom::IResult::*;
+            match res {
+                Done(rest, state_change) => {
+                    if rest.len() == 0 {
+                        go = false;
+                    }
+                    progress += 4;
+                    board.update_index(state_change.x, state_change.y, color_to_rgb(state_change.color));
+                    rest_input = rest;
+                },
+                Error(_) => panic!("error"),
+                Incomplete(_) => {
+                    panic!("should never happen, because we always read 4 bytes")
+                },
+            }
         }
-
-
-        let mut imgbuf: image::ImageBuffer<Rgb<u8>,_> = image::ImageBuffer::new(999, 999);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-            *pixel = *board.get(x,y);
-        }
-        imgbuf.save("out.png").expect("could not save");
     }
+
+    let mut imgbuf: image::ImageBuffer<Rgb<u8>,_> = image::ImageBuffer::new(999, 999);
+    for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        *pixel = *board.get(x,y);
+    }
+    imgbuf.save("out.png").expect("could not save");
 }
