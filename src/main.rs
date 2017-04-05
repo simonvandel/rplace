@@ -126,7 +126,7 @@ fn main() {
                         go = false;
                     }
                     progress += 4;
-                    board.update_index(state_change.x, state_change.y, color_to_rgb(state_change.color));
+                    board.update_index(state_change.x, state_change.y, state_change.color);
                     rest_input = rest;
                 },
                 Error(_) => panic!("error"),
@@ -139,7 +139,7 @@ fn main() {
 
     let mut imgbuf: image::ImageBuffer<Rgb<u8>,_> = image::ImageBuffer::new(999, 999);
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-        *pixel = *board.get(x,y);
+        *pixel = color_to_rgb(board.get(x,y))
     }
     imgbuf.save("out.png").expect("could not save");
 }
