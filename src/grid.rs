@@ -1,6 +1,3 @@
-
-use image::Rgb;
-
 #[derive(Debug)]
 pub struct Grid {
     pub buffer: Vec<u8>

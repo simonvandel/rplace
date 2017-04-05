@@ -3,8 +3,6 @@ extern crate nom;
 extern crate image;
 
 use nom::{le_u8, le_u32};
-use nom::IResult;
-use nom::{MapConsumer,Consumer,MemProducer, Producer};
 
 use image::Rgb;
 
@@ -65,10 +63,6 @@ fn mk_reader(filename: &str) -> io::Result<BufReader<File>> {
     Ok(BufReader::new(f))
 }
 
-named!(main_parse(&[u8]) -> Vec<StateChange>,
-    many1!(state_change)
-);
-
 fn color_code_to_hex(color: u8) -> u32 {
     match color {
         0  => 0xFFFFFF,
@@ -99,7 +93,6 @@ fn color_to_rgb(color: u8) -> Rgb<u8> {
     Rgb{data: [ bytes[2], bytes[1], bytes[0] ]}
 }
 
-consumer_from_parser!(TestConsumer<StateChange>, state_change);
 
 fn main() {
     let mut reader = mk_reader("diffs.bin").expect("Failed getting reader");
