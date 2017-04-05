@@ -2,7 +2,7 @@
 extern crate nom;
 extern crate image;
 
-use nom::le_u32;
+use nom::{le_u8, le_u32};
 use nom::IResult;
 use nom::{MapConsumer,Consumer,MemProducer, Producer};
 
@@ -46,7 +46,7 @@ struct StateChange {
     timestamp: u32,
     x: u32,
     y: u32,
-    color: u32,
+    color: u8,
 }
 
 named!(state_change( &[u8] ) -> StateChange,
@@ -54,7 +54,8 @@ named!(state_change( &[u8] ) -> StateChange,
         timestamp: le_u32 >>
         x:         le_u32 >>
         y:         le_u32 >>
-        color:     le_u32 >>
+        color:     le_u8 >>
+        skip:         take!(3) >>
         (StateChange{timestamp, x, y, color})
     )
 );
@@ -68,7 +69,7 @@ named!(main_parse(&[u8]) -> Vec<StateChange>,
     many1!(state_change)
 );
 
-fn color_code_to_hex(color: u32) -> u32 {
+fn color_code_to_hex(color: u8) -> u32 {
     match color {
         0  => 0xFFFFFF,
         1  => 0xE4E4E4,
@@ -90,7 +91,7 @@ fn color_code_to_hex(color: u32) -> u32 {
     }
 }
 
-fn color_to_rgb(color: u32) -> Rgb<u8> {
+fn color_to_rgb(color: u8) -> Rgb<u8> {
     let hex_color = color_code_to_hex(color);
     let bytes = unsafe {
         std::mem::transmute::<u32, [u8; 4]>(hex_color)
